@@ -7,6 +7,7 @@ class SpriteKind:
 direction = 0
 X = 0
 Y = 0
+dmg = 1
 
 # MC XY
 def XY():
@@ -23,17 +24,28 @@ controller.move_sprite(MC)
 scene.camera_follow_sprite(MC)
 
 # enemy
-slime = sprites.create(assets.image("""slime"""), SpriteKind.player)
+slime = sprites.create(assets.image("""slime"""), SpriteKind.enemy)
 statusbar = statusbars.create(20, 4, StatusBarKind.enemy_health)
 statusbar.attach_to_sprite(slime)
+statusbar.value = 10
 def SlimeHit(sprite, othersprite):
-    pass
+    statusbar.value -= 1
+    pause(500)
+sprites.on_overlap(SpriteKind.hit, SpriteKind.enemy, SlimeHit)
 
 # Tutorial Tilemap
 tiles.set_current_tilemap(tilemap("""tutorial"""))
 tiles.place_on_random_tile(MC, assets.tile("""start"""))
 tiles.set_tile_at(tiles.get_tile_location(2, 3), assets.tile("""TutFloor"""))
 tiles.place_on_tile(slime, tiles.get_tile_location(60, 3))
+
+# directions
+game.splash("press a to attack")
+
+# death
+def slimedead():
+    slime.destroy()
+statusbars.on_zero(StatusBarKind.enemy_health, slimedead)
 
 # MC Walk
 controller.right.on_event(ControllerButtonEvent.PRESSED, RightWalk)

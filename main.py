@@ -2,12 +2,13 @@
 class SpriteKind:
     hit = SpriteKind.create()
 
-
 # variables
 direction = 0
 X = 0
 Y = 0
 dmg = 1
+MC_xp = 0
+health = 0
 
 # MC XY
 def XY():
@@ -28,23 +29,28 @@ slime = sprites.create(assets.image("""slime"""), SpriteKind.enemy)
 statusbar = statusbars.create(20, 4, StatusBarKind.enemy_health)
 statusbar.attach_to_sprite(slime)
 statusbar.value = 10
+slime_xp = 1
 def SlimeHit(sprite, othersprite):
     statusbar.value -= 1
     pause(500)
 sprites.on_overlap(SpriteKind.hit, SpriteKind.enemy, SlimeHit)
 
 # Tutorial Tilemap
-tiles.set_current_tilemap(tilemap("""tutorial"""))
-tiles.place_on_random_tile(MC, assets.tile("""start"""))
-tiles.set_tile_at(tiles.get_tile_location(2, 3), assets.tile("""TutFloor"""))
-tiles.place_on_tile(slime, tiles.get_tile_location(60, 3))
+def Tutorial():
+    tiles.set_current_tilemap(tilemap("""tutorial"""))
+    tiles.place_on_random_tile(MC, assets.tile("""start"""))
+    tiles.set_tile_at(tiles.get_tile_location(2, 3), assets.tile("""TutFloor"""))
+    tiles.place_on_tile(slime, tiles.get_tile_location(28, 3))
+Tutorial()
 
 # directions
 game.splash("press a to attack")
 
 # death
 def slimedead():
+    global slime_xp, MC_xp
     slime.destroy()
+    MC_xp += slime_xp
 statusbars.on_zero(StatusBarKind.enemy_health, slimedead)
 
 # MC Walk

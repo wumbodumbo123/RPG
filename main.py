@@ -1,6 +1,7 @@
 @namespace
 class SpriteKind:
     hit = SpriteKind.create()
+    Inventory = SpriteKind.create()
 @namespace
 class StatusBarKind:
     XP = StatusBarKind.create()
@@ -12,6 +13,8 @@ Y = 0
 dmg = 10
 MC_xp = 0
 health = 0
+MaxXp = 10
+XpText: TextSprite = None
 
 # MC XY
 def XY():
@@ -26,6 +29,11 @@ MC = sprites.create(assets.image("""
 """), SpriteKind.player)
 controller.move_sprite(MC)
 scene.camera_follow_sprite(MC)
+
+# MC health
+McHealth = statusbars.create(20, 4, StatusBarKind.health)
+McHealth.attach_to_sprite(MC)
+McHealth.set_offset_padding(0, -12)
 
 # enemy
 slime = sprites.create(assets.image("""slime"""), SpriteKind.enemy)
@@ -57,26 +65,52 @@ def slimedead():
 statusbars.on_zero(StatusBarKind.enemy_health, slimedead)
 
 # inventory
+invN = 2
+inv: Sprite = None
+def inventory_close():
+    global invN
+    if invN == 1:
+        invN = 2
+        inv.destroy()
+        scaling.scale_by_pixels(MC, -48, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
+        scene.camera_follow_sprite(MC)
+        MC.set_position(X + 42, Y)
+        XpText.destroy()
+        game.splash("inventory closed starting game")
+        controller.move_sprite(MC)
 def inventory():
-    inv = sprites.create(img("""
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-        ........................................................................................................................
-    """), SpriteKind.player)
-controller.menu.on_event(ControllerButtonEvent.PRESSED, inventory)
+    global invN, inv, MC, XpText, McHealth
+    if invN == 2:
+        # create inv
+        inv = sprites.create(assets.image("""Inventory"""), SpriteKind.Inventory)
+        inv.set_position(X, Y)
+
+        # MC
+        controller.move_sprite(MC, 0, 0)
+        XN = X
+        YN = Y
+        scene.center_camera_at(XN, YN)
+        MC.destroy()
+        MC = sprites.create(assets.image("""
+            MC
+        """), SpriteKind.player)
+        MC.set_position(XN - 42, YN)
+        scaling.scale_by_pixels(MC, 48, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
+
+        # MC health
+        McHealth.destroy()
+        McHealth = statusbars.create(20, 4, StatusBarKind.health)
+        McHealth.attach_to_sprite(MC)
+        McHealth.set_offset_padding(0, -12)
+
+        # XP
+        XpText = textsprite.create("XP " + MC_xp + "/" + MaxXp)
+        XpText.set_position(XN - 42, YN + 35)
+        
+        # invN
+        invN = 1
+controller.menu.on_event(ControllerButtonEvent.PRESSED, inventory_close)
+controller.menu.on_event(ControllerButtonEvent.RELEASED, inventory)
 
 # MC Walk
 controller.right.on_event(ControllerButtonEvent.PRESSED, RightWalk)

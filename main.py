@@ -2,19 +2,25 @@
 class SpriteKind:
     hit = SpriteKind.create()
     Inventory = SpriteKind.create()
+    TutExit = SpriteKind.create()
+    Slime = SpriteKind.create()
+    Random = SpriteKind.create()
 @namespace
 class StatusBarKind:
     XP = StatusBarKind.create()
 
 # variables
+health = 
 direction = 0
 X = 0
 Y = 0
 dmg = 10
 MC_xp = 0
-health = 0
+H = 0
 MaxXp = 10
 XpText: TextSprite = None
+level = 0
+SON = 0
 
 # MC XY
 def XY():
@@ -36,7 +42,7 @@ McHealth.attach_to_sprite(MC)
 McHealth.set_offset_padding(0, -12)
 
 # enemy
-slime = sprites.create(assets.image("""slime"""), SpriteKind.enemy)
+slime = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
 statusbar = statusbars.create(20, 4, StatusBarKind.enemy_health)
 statusbar.attach_to_sprite(slime)
 statusbar.value = 100
@@ -46,16 +52,56 @@ def SlimeHit(sprite, othersprite):
     pause(500)
 sprites.on_overlap(SpriteKind.hit, SpriteKind.enemy, SlimeHit)
 
-# Tutorial Tilemap
+# enemy fight
+def SlimeFight():
+    fight()
+sprites.on_overlap(SpriteKind.player, SpriteKind.Slime, SlimeFight)
+def fight():
+    
+    # tilemap
+    tiles.set_current_tilemap(tilemap("""FightRing"""))
+    
+    # background
+    scene.set_background_image(assets.image("""DungeonFight"""))
+    
+    # MC
+    tiles.place_on_tile(MC, tiles.get_tile_location(7, 3))
+    controller.move_sprite(MC, 0, 0)
+    
+    # Button
+    button()
+
+# Button
+def button():
+    global SON
+    MSprite = sprites.create(assets.image("""ChoiceButton"""), SpriteKind.Random)
+    MSprite.set_position(80, 95)
+    # select
+    select = sprites.create(assets.image("""Select"""), SpriteKind.Random)
+    if controller.up.is_pressed() and SON >= 1 and SON < 4:
+        SON += 1
+    if controller.down.is_pressed() and SON <= 4 and SON < 1:
+        SON -= 1
+
+# Tutorial
 def Tutorial():
     tiles.set_current_tilemap(tilemap("""tutorial"""))
     tiles.place_on_random_tile(MC, assets.tile("""start"""))
-    tiles.set_tile_at(tiles.get_tile_location(2, 3), assets.tile("""TutFloor"""))
-    tiles.place_on_tile(slime, tiles.get_tile_location(28, 3))
+    tiles.set_tile_at(tiles.get_tile_location(5, 6), assets.tile("""TutFloor"""))
+    tiles.place_on_tile(slime, tiles.get_tile_location(31, 6))
+    exit = sprites.create(assets.image("""exit"""), SpriteKind.TutExit)
+    tiles.place_on_tile(exit, tiles.get_tile_location(33, 6))
+def ExitTut():
+    global level
+    level = 1
+    WorldMap()
 Tutorial()
+sprites.on_overlap(SpriteKind.player, SpriteKind.TutExit, ExitTut)
 
 # directions
-game.splash("press a to attack")
+def directions():
+    game.splash("press a to attack")
+    game.splash("press menu for inventory")
 
 # death
 def slimedead():
@@ -76,7 +122,7 @@ def inventory_close():
         scene.camera_follow_sprite(MC)
         MC.set_position(X + 42, Y)
         XpText.destroy()
-        game.splash("inventory closed starting game")
+        game.show_long_text("inventory closed starting game", DialogLayout.FULL)
         controller.move_sprite(MC)
 def inventory():
     global invN, inv, MC, XpText, McHealth
@@ -106,11 +152,15 @@ def inventory():
         # XP
         XpText = textsprite.create("XP " + MC_xp + "/" + MaxXp)
         XpText.set_position(XN - 42, YN + 35)
+        XpText.set_outline(1, 6)
         
         # invN
         invN = 1
 controller.menu.on_event(ControllerButtonEvent.PRESSED, inventory_close)
 controller.menu.on_event(ControllerButtonEvent.RELEASED, inventory)
+
+# call direction
+directions()
 
 # MC Walk
 controller.right.on_event(ControllerButtonEvent.PRESSED, RightWalk)
@@ -201,3 +251,8 @@ def Swing():
         pause(500)
         hit.destroy()
         LeftWalk()
+
+# world map
+def WorldMap():
+    if level == 1:
+        tiles.set_current_tilemap(tilemap("""WorldMap"""))

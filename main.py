@@ -20,7 +20,12 @@ H = 0
 MaxXp = 10
 XpText: TextSprite = None
 level = 0
-SON = 0
+SON = 1
+select: Sprite = None
+A = False
+B = False
+SelectChoice = 0
+Walk = True
 
 # MC XY
 def XY():
@@ -73,15 +78,35 @@ def fight():
 
 # Button
 def button():
-    global SON
+    global select, A, B
     MSprite = sprites.create(assets.image("""ChoiceButton"""), SpriteKind.Random)
     MSprite.set_position(80, 95)
     # select
     select = sprites.create(assets.image("""Select"""), SpriteKind.Random)
-    if controller.up.is_pressed() and SON >= 1 and SON < 4:
-        SON += 1
-    if controller.down.is_pressed() and SON <= 4 and SON < 1:
-        SON -= 1
+    A = True
+    B = True
+    Walk = False
+
+def SelectPosition():
+    global SON, SelectChoice
+    if A == True:
+        if controller.down.is_pressed() and SON >= 1 and SON < 4:
+            SON += 1
+            pause(100)
+        if controller.up.is_pressed() and SON <= 4 and SON > 1:
+            SON -= 1
+            pause(100)
+    if B == True:
+        if SON == 1:
+            select.set_position(105, 80)
+            SelectChoice = 1
+        elif SON == 2:
+            select.set_position(105, 90)
+        elif SON == 3:
+            select.set_position(105, 100)
+        elif SON == 4:
+            select.set_position(105, 110)
+game.on_update(SelectPosition)
 
 # Tutorial
 def Tutorial():
@@ -165,43 +190,47 @@ directions()
 # MC Walk
 controller.right.on_event(ControllerButtonEvent.PRESSED, RightWalk)
 def RightWalk():
-    global direction
-    animation.run_image_animation(MC, assets.animation("""
-        RightWalk
-    """), 250, True)
-    direction = 2
-    def RightWalkStop():
-        animation.stop_animation(animation.AnimationTypes.ALL, MC)
-    controller.right.on_event(ControllerButtonEvent.RELEASED, RightWalkStop)
+    if Walk == True:
+        global direction
+        animation.run_image_animation(MC, assets.animation("""
+            RightWalk
+        """), 250, True)
+        direction = 2
+        def RightWalkStop():
+            animation.stop_animation(animation.AnimationTypes.ALL, MC)
+        controller.right.on_event(ControllerButtonEvent.RELEASED, RightWalkStop)
 controller.left.on_event(ControllerButtonEvent.PRESSED, LeftWalk)
 def LeftWalk():
-    global direction
-    animation.run_image_animation(MC, assets.animation("""
-        LeftWalk
-    """), 250, True)
-    direction = 4
-    def LeftWalkStop():
-        animation.stop_animation(animation.AnimationTypes.ALL, MC)
-    controller.left.on_event(ControllerButtonEvent.RELEASED, LeftWalkStop)
+    if Walk == True:
+        global direction
+        animation.run_image_animation(MC, assets.animation("""
+            LeftWalk
+        """), 250, True)
+        direction = 4
+        def LeftWalkStop():
+            animation.stop_animation(animation.AnimationTypes.ALL, MC)
+        controller.left.on_event(ControllerButtonEvent.RELEASED, LeftWalkStop)
 controller.up.on_event(ControllerButtonEvent.PRESSED, UpWalk)
 def UpWalk():
-    global direction
-    animation.run_image_animation(MC, assets.animation("""
-        UpWalk
-    """), 250, True)
-    direction = 1
-    def UpWalkStop():
-        animation.stop_animation(animation.AnimationTypes.ALL, MC)
-    controller.up.on_event(ControllerButtonEvent.RELEASED, UpWalkStop)
+    if Walk == True:
+        global direction
+        animation.run_image_animation(MC, assets.animation("""
+            UpWalk
+        """), 250, True)
+        direction = 1
+        def UpWalkStop():
+            animation.stop_animation(animation.AnimationTypes.ALL, MC)
+        controller.up.on_event(ControllerButtonEvent.RELEASED, UpWalkStop)
 controller.down.on_event(ControllerButtonEvent.PRESSED, DownWalk)
 def DownWalk():
-    global direction
-    animation.run_image_animation(MC, assets.animation("""
-        DownWalk
-    """), 250, True)
-    direction = 3
-    def DownWalkStop():
-        animation.stop_animation(animation.AnimationTypes.ALL, MC)
+    if Walk == True:
+        global direction
+        animation.run_image_animation(MC, assets.animation("""
+            DownWalk
+        """), 250, True)
+        direction = 3
+        def DownWalkStop():
+            animation.stop_animation(animation.AnimationTypes.ALL, MC)
     controller.down.on_event(ControllerButtonEvent.RELEASED, DownWalkStop)
 
 # attack

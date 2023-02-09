@@ -22,8 +22,10 @@ XpText: TextSprite = None
 level = 0
 SON = 1
 select: Sprite = None
+MSprite: Sprite = None
 A = False
 B = False
+C = False
 SelectChoice = 0
 Walk = True
 
@@ -78,14 +80,16 @@ def fight():
 
 # Button
 def button():
-    global select, A, B
+    global select, A, B, C, Walk, MSprite
     MSprite = sprites.create(assets.image("""ChoiceButton"""), SpriteKind.Random)
     MSprite.set_position(80, 95)
     # select
     select = sprites.create(assets.image("""Select"""), SpriteKind.Random)
     A = True
     B = True
+    C = True
     Walk = False
+    animation.run_image_animation(MC, assets.animation("AttackStance"), 500, True)
 
 def SelectPosition():
     global SON, SelectChoice
@@ -106,6 +110,9 @@ def SelectPosition():
             select.set_position(105, 100)
         elif SON == 4:
             select.set_position(105, 110)
+    if C == True:
+        if controller.A.is_pressed() and SON == 1:
+            MSprite.set_image(assets.image("""AttackChoice"""))
 game.on_update(SelectPosition)
 
 # Tutorial
@@ -236,50 +243,51 @@ def DownWalk():
 # attack
 controller.A.on_event(ControllerButtonEvent.PRESSED, Swing)
 def Swing():
-    if direction == 1:
-        animation.run_image_animation(MC, assets.animation("""
-            UpSwing
-        """), 250, False)
-        pause(250)
-        hit = sprites.create(assets.image("""UpHit"""), SpriteKind.hit)
-        hit.set_position(X, Y)
-        hit.follow(MC, 800)
-        pause(500)
-        hit.destroy()
-        UpWalk()
-    if direction == 2:
-        animation.run_image_animation(MC, assets.animation("""
-            RightSwing
-        """), 250, False)
-        pause(250)
-        hit = sprites.create(assets.image("""RightHit"""), SpriteKind.hit)
-        hit.set_position(X, Y)
-        hit.follow(MC, 800)
-        pause(500)
-        hit.destroy()
-        RightWalk()
-    if direction == 3:
-        animation.run_image_animation(MC, assets.animation("""
-            DownSwing
-        """), 250, False)
-        pause(250)
-        hit = sprites.create(assets.image("""DownHit"""), SpriteKind.hit)
-        hit.set_position(X, Y)
-        hit.follow(MC, 800)
-        pause(500)
-        hit.destroy()
-        DownWalk()
-    if direction == 4:
-        animation.run_image_animation(MC, assets.animation("""
-            LeftSwing
-        """), 250, False)
-        pause(250)
-        hit = sprites.create(assets.image("""LeftHit"""), SpriteKind.hit)
-        hit.set_position(X, Y)
-        hit.follow(MC, 800)
-        pause(500)
-        hit.destroy()
-        LeftWalk()
+    if Walk == True:
+        if direction == 1:
+            animation.run_image_animation(MC, assets.animation("""
+                UpSwing
+            """), 250, False)
+            pause(250)
+            hit = sprites.create(assets.image("""UpHit"""), SpriteKind.hit)
+            hit.set_position(X, Y)
+            hit.follow(MC, 800)
+            pause(500)
+            hit.destroy()
+            UpWalk()
+        if direction == 2:
+            animation.run_image_animation(MC, assets.animation("""
+                RightSwing
+            """), 250, False)
+            pause(250)
+            hit = sprites.create(assets.image("""RightHit"""), SpriteKind.hit)
+            hit.set_position(X, Y)
+            hit.follow(MC, 800)
+            pause(500)
+            hit.destroy()
+            RightWalk()
+        if direction == 3:
+            animation.run_image_animation(MC, assets.animation("""
+                DownSwing
+            """), 250, False)
+            pause(250)
+            hit = sprites.create(assets.image("""DownHit"""), SpriteKind.hit)
+            hit.set_position(X, Y)
+            hit.follow(MC, 800)
+            pause(500)
+            hit.destroy()
+            DownWalk()
+        if direction == 4:
+            animation.run_image_animation(MC, assets.animation("""
+                LeftSwing
+            """), 250, False)
+            pause(250)
+            hit = sprites.create(assets.image("""LeftHit"""), SpriteKind.hit)
+            hit.set_position(X, Y)
+            hit.follow(MC, 800)
+            pause(500)
+            hit.destroy()
+            LeftWalk()
 
 # world map
 def WorldMap():

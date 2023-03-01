@@ -8,9 +8,10 @@ class SpriteKind:
 @namespace
 class StatusBarKind:
     XP = StatusBarKind.create()
+    enemy_health2 = StatusBarKind.create()
 
 # variables
-health = 
+health = 100
 direction = 0
 X = 0
 Y = 0
@@ -23,11 +24,25 @@ level = 0
 SON = 1
 select: Sprite = None
 MSprite: Sprite = None
+SlimeHealth1: StatusBarSprite = None
+SlimeHealth2: StatusBarSprite = None
+SlimeHealth3: StatusBarSprite = None
+SlimeHealth4: StatusBarSprite = None
 A = False
-B = False
+SlimeFightStillGoing = False
 C = False
+D = False
+E = False
+SlimeN = 0
+slime_xp = 1
 SelectChoice = 0
 Walk = True
+SX = 0
+SY = 0
+SX2 = 0
+SY2 = 0
+EnemyNumber = 0
+AttackEnemyValid = False
 
 # MC XY
 def XY():
@@ -50,19 +65,64 @@ McHealth.set_offset_padding(0, -12)
 
 # enemy
 slime = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
-statusbar = statusbars.create(20, 4, StatusBarKind.enemy_health)
-statusbar.attach_to_sprite(slime)
-statusbar.value = 100
-slime_xp = 1
-def SlimeHit(sprite, othersprite):
-    statusbar.value -= dmg
-    pause(500)
-sprites.on_overlap(SpriteKind.hit, SpriteKind.enemy, SlimeHit)
 
-# enemy fight
+# enemy fight 
+
 def SlimeFight():
+    global SlimeN, SlimeFightStillGoing, SX, SY, SX2, SY2, EnemyNumber
     fight()
+    EnemyNumber = 4
+    SX = 15
+    SY = 12
+    SX2 = 15 + 15
+    SY2 = 12 + 16
+    slimeCreate()
+
+def slimeCreate():
+    global SX, SY, SX2, SY2, SlimeHealth1, SlimeHealth2, SlimeHealth3, SlimeHealth4 
+    if EnemyNumber >= 1:
+        # 1
+        slime1 = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
+        scaling.scale_by_pixels(slime1, -4, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
+        slime1.set_position(SX, SY)
+        SlimeHealth1 = statusbars.create(20, 4, StatusBarKind.enemy_health)
+        SlimeHealth1.attach_to_sprite(slime1)
+        SlimeHealth1.value = 100
+        SY += 32
+        
+    if EnemyNumber >= 2:
+        #2
+        slime2 = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
+        scaling.scale_by_pixels(slime2, -4, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
+        slime2.set_position(SX, SY)
+        SlimeHealth2 = statusbars.create(20, 4, StatusBarKind.enemy_health2)
+        SlimeHealth2.attach_to_sprite(slime2)
+        SlimeHealth2.value = 100
+        SY += 32
+        
+    if EnemyNumber >= 3:
+        #3
+        slime3 = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
+        scaling.scale_by_pixels(slime3, -4, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
+        slime3.set_position(SX2, SY2)
+        SlimeHealth3 = statusbars.create(20, 4, StatusBarKind.enemy_health)
+        SlimeHealth3.attach_to_sprite(slime3)
+        SlimeHealth3.value = 100
+        SY2 += 32
+        
+    if EnemyNumber == 4:
+        #4
+        slime4 = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
+        scaling.scale_by_pixels(slime4, -4, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
+        slime4.set_position(SX2, SY2)
+        SlimeHealth4 = statusbars.create(20, 4, StatusBarKind.enemy_health)
+        SlimeHealth4.attach_to_sprite(slime4)
+        SlimeHealth4.value = 100
+        SY2 += 32
+        
+
 sprites.on_overlap(SpriteKind.player, SpriteKind.Slime, SlimeFight)
+
 def fight():
     
     # tilemap
@@ -80,16 +140,15 @@ def fight():
 
 # Button
 def button():
-    global select, A, B, C, Walk, MSprite
+    global select, A, C, Walk, MSprite, SlimeHealth4
     MSprite = sprites.create(assets.image("""ChoiceButton"""), SpriteKind.Random)
     MSprite.set_position(80, 95)
     # select
     select = sprites.create(assets.image("""Select"""), SpriteKind.Random)
     A = True
-    B = True
     C = True
     Walk = False
-    animation.run_image_animation(MC, assets.animation("AttackStance"), 500, True)
+    animation.run_image_animation(MC, assets.animation("""AttackStance"""), 500, True)
 
 def SelectPosition():
     global SON, SelectChoice
@@ -100,19 +159,48 @@ def SelectPosition():
         if controller.up.is_pressed() and SON <= 4 and SON > 1:
             SON -= 1
             pause(100)
-    if B == True:
         if SON == 1:
             select.set_position(105, 80)
             SelectChoice = 1
         elif SON == 2:
             select.set_position(105, 90)
+            SelectChoice = 2
         elif SON == 3:
             select.set_position(105, 100)
+            SelectChoice = 3
         elif SON == 4:
             select.set_position(105, 110)
+            SelectChoice = 4
+        global D, E, C
     if C == True:
-        if controller.A.is_pressed() and SON == 1:
+        if controller.A.is_pressed() and SelectChoice == 1:
             MSprite.set_image(assets.image("""AttackChoice"""))
+            D = True
+            E = True
+            pause(100)
+    if E == True:
+        C = False
+        if controller.A.is_pressed() and SelectChoice == 1:
+            MSprite.set_image(assets.image("""AttackWho"""))
+            F = True
+            D = False
+        if F == True:
+            while AttackEnemyValid == False:
+                attackenemy = game.ask_for_number("attack enemy 1, 2, 3, 4")
+                if attackenemy >= 1 and attackenemy <= EnemyNumber:
+                    AttackEnemyValid = True
+                else:
+                    game.splash("invalid enemy")
+            if attackenemy == 1:
+                SlimeHealth1.value -= dmg
+
+    if D == True:
+        global E, C
+        if SON == 4 and SelectChoice == 4 and controller.A.is_pressed():
+            MSprite.set_image(assets.image("""ChoiceButton"""))
+            E = False
+            C = True
+
 game.on_update(SelectPosition)
 
 # Tutorial

@@ -8,14 +8,18 @@ class SpriteKind:
 @namespace
 class StatusBarKind:
     XP = StatusBarKind.create()
-    enemy_health2 = StatusBarKind.create()
+    # Slime health
+    SlimeH1 = StatusBarKind.create()
+    SlimeH2 = StatusBarKind.create()
+    SlimeH3 = StatusBarKind.create()
+    SlimeH4 = StatusBarKind.create()
 
 # variables
 health = 100
 direction = 0
 X = 0
 Y = 0
-dmg = 10
+dmg = 25
 MC_xp = 0
 H = 0
 MaxXp = 10
@@ -41,8 +45,15 @@ SX = 0
 SY = 0
 SX2 = 0
 SY2 = 0
-EnemyNumber = 0
-AttackEnemyValid = False
+EnemyNumber = -68
+EnemyHitNumber = 0
+AllEnemyDead = 0
+slime1: Sprite = None
+slime2: Sprite = None
+slime3: Sprite = None
+slime4: Sprite = None
+MCX = 0
+MCY = 0
 
 # MC XY
 def XY():
@@ -66,65 +77,99 @@ McHealth.set_offset_padding(0, -12)
 # enemy
 slime = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
 
+# enemy die
+def Death():
+    # Slimes
+    def Slime1():
+        global MC_xp, AllEnemyDead
+        MC_xp += slime_xp
+        slime1.destroy()
+        AllEnemyDead += 1
+    def Slime2():
+        global MC_xp, AllEnemyDead
+        MC_xp += slime_xp
+        slime2.destroy()
+        AllEnemyDead += 1
+    def Slime3():
+        global MC_xp, AllEnemyDead
+        MC_xp += slime_xp
+        slime3.destroy()
+        AllEnemyDead += 1
+    def Slime4():
+        global MC_xp, AllEnemyDead
+        MC_xp += slime_xp
+        slime4.destroy()
+        AllEnemyDead += 1
+
+    # slime func run
+    statusbars.on_zero(StatusBarKind.SlimeH1, Slime1)
+    statusbars.on_zero(StatusBarKind.SlimeH2, Slime2)
+    statusbars.on_zero(StatusBarKind.SlimeH3, Slime3)
+    statusbars.on_zero(StatusBarKind.SlimeH4, Slime4)
+game.on_update(Death)
+
 # enemy fight 
 
 def SlimeFight():
-    global SlimeN, SlimeFightStillGoing, SX, SY, SX2, SY2, EnemyNumber
+    global SX, SY, SX2, SY2, EnemyNumber
     fight()
-    EnemyNumber = 4
+    EnemyNumber = (randint(1, 1))
     SX = 15
     SY = 12
     SX2 = 15 + 15
     SY2 = 12 + 16
     slimeCreate()
+    slime.destroy()
+sprites.on_overlap(SpriteKind.player, SpriteKind.Slime, SlimeFight)
 
 def slimeCreate():
-    global SX, SY, SX2, SY2, SlimeHealth1, SlimeHealth2, SlimeHealth3, SlimeHealth4 
+    global SX, SY, SX2, SY2, SlimeHealth1, SlimeHealth2, SlimeHealth3, SlimeHealth4, slime1, slime2, slime3, slime4
     if EnemyNumber >= 1:
         # 1
         slime1 = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
         scaling.scale_by_pixels(slime1, -4, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
         slime1.set_position(SX, SY)
-        SlimeHealth1 = statusbars.create(20, 4, StatusBarKind.enemy_health)
+        SlimeHealth1 = statusbars.create(20, 4, StatusBarKind.SlimeH1)
         SlimeHealth1.attach_to_sprite(slime1)
         SlimeHealth1.value = 100
         SY += 32
-        
+
     if EnemyNumber >= 2:
-        #2
-        slime2 = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
-        scaling.scale_by_pixels(slime2, -4, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
-        slime2.set_position(SX, SY)
-        SlimeHealth2 = statusbars.create(20, 4, StatusBarKind.enemy_health2)
-        SlimeHealth2.attach_to_sprite(slime2)
-        SlimeHealth2.value = 100
-        SY += 32
-        
-    if EnemyNumber >= 3:
         #3
         slime3 = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
         scaling.scale_by_pixels(slime3, -4, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
         slime3.set_position(SX2, SY2)
-        SlimeHealth3 = statusbars.create(20, 4, StatusBarKind.enemy_health)
+        SlimeHealth3 = statusbars.create(20, 4, StatusBarKind.SlimeH2)
         SlimeHealth3.attach_to_sprite(slime3)
         SlimeHealth3.value = 100
-        SY2 += 32
+        SY2 += 32 
+
+    if EnemyNumber >= 3:
+        #2
+        slime2 = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
+        scaling.scale_by_pixels(slime2, -4, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
+        slime2.set_position(SX, SY)
+        SlimeHealth2 = statusbars.create(20, 4, StatusBarKind.SlimeH3)
+        SlimeHealth2.attach_to_sprite(slime2)
+        SlimeHealth2.value = 100
+        SY += 32
         
     if EnemyNumber == 4:
         #4
         slime4 = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
         scaling.scale_by_pixels(slime4, -4, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
         slime4.set_position(SX2, SY2)
-        SlimeHealth4 = statusbars.create(20, 4, StatusBarKind.enemy_health)
+        SlimeHealth4 = statusbars.create(20, 4, StatusBarKind.SlimeH4)
         SlimeHealth4.attach_to_sprite(slime4)
         SlimeHealth4.value = 100
         SY2 += 32
         
-
-sprites.on_overlap(SpriteKind.player, SpriteKind.Slime, SlimeFight)
-
 def fight():
-    
+    global MCX, MCY
+    # MC Position
+    MCX = MC.x
+    MCY = MC.y
+
     # tilemap
     tiles.set_current_tilemap(tilemap("""FightRing"""))
     
@@ -151,7 +196,7 @@ def button():
     animation.run_image_animation(MC, assets.animation("""AttackStance"""), 500, True)
 
 def SelectPosition():
-    global SON, SelectChoice
+    global SON, SelectChoice, Walk
     if A == True:
         if controller.down.is_pressed() and SON >= 1 and SON < 4:
             SON += 1
@@ -181,19 +226,41 @@ def SelectPosition():
     if E == True:
         C = False
         if controller.A.is_pressed() and SelectChoice == 1:
-            MSprite.set_image(assets.image("""AttackWho"""))
+            MSprite.set_image(assets.image("""ChoiceButton"""))
             F = True
             D = False
         if F == True:
-            while AttackEnemyValid == False:
-                attackenemy = game.ask_for_number("attack enemy 1, 2, 3, 4")
-                if attackenemy >= 1 and attackenemy <= EnemyNumber:
-                    AttackEnemyValid = True
-                else:
-                    game.splash("invalid enemy")
-            if attackenemy == 1:
-                SlimeHealth1.value -= dmg
+            
+            AttackTrue()
+            def AttackTrue():
+                global EnemyHitNumber
+                AttackEnemy = game.ask_for_number("enemy 1, 2, 3, 4")
+                
+                if AttackEnemy > EnemyNumber:
+                    game.splash("invalid Enemy")
+                    AttackTrue()
+                elif AttackEnemy == 1:
+                    EnemyHitNumber = 1
+                elif AttackEnemy == 2:
+                    EnemyHitNumber = 2
+                elif AttackEnemy == 3:
+                    EnemyHitNumber = 3
+                elif AttackEnemy == 4:
+                    EnemyHitNumber = 4
 
+            if EnemyHitNumber == 1:
+                SlimeHealth1.value -= dmg
+            if EnemyHitNumber == 2:
+                SlimeHealth3.value -= dmg
+            if EnemyHitNumber == 3:
+                SlimeHealth2.value -= dmg
+            if EnemyHitNumber == 4:
+                SlimeHealth4.value -= dmg
+
+            F = False
+            E = False
+            C = True
+            
     if D == True:
         global E, C
         if SON == 4 and SelectChoice == 4 and controller.A.is_pressed():
@@ -201,7 +268,21 @@ def SelectPosition():
             E = False
             C = True
 
+    # end fight
+    if AllEnemyDead == EnemyNumber:
+        pause(100)
+        tiles.set_current_tilemap(tilemap("""tutorial"""))
+        pause(400)
+        MC.set_position(MCX, MCY)
+        Walk = True
+        
+
 game.on_update(SelectPosition)
+
+# Move
+def Move():
+    controller.move_sprite(MC, 100, 100)
+game.on_update(Move)
 
 # Tutorial
 def Tutorial():
@@ -327,55 +408,6 @@ def DownWalk():
         def DownWalkStop():
             animation.stop_animation(animation.AnimationTypes.ALL, MC)
     controller.down.on_event(ControllerButtonEvent.RELEASED, DownWalkStop)
-
-# attack
-controller.A.on_event(ControllerButtonEvent.PRESSED, Swing)
-def Swing():
-    if Walk == True:
-        if direction == 1:
-            animation.run_image_animation(MC, assets.animation("""
-                UpSwing
-            """), 250, False)
-            pause(250)
-            hit = sprites.create(assets.image("""UpHit"""), SpriteKind.hit)
-            hit.set_position(X, Y)
-            hit.follow(MC, 800)
-            pause(500)
-            hit.destroy()
-            UpWalk()
-        if direction == 2:
-            animation.run_image_animation(MC, assets.animation("""
-                RightSwing
-            """), 250, False)
-            pause(250)
-            hit = sprites.create(assets.image("""RightHit"""), SpriteKind.hit)
-            hit.set_position(X, Y)
-            hit.follow(MC, 800)
-            pause(500)
-            hit.destroy()
-            RightWalk()
-        if direction == 3:
-            animation.run_image_animation(MC, assets.animation("""
-                DownSwing
-            """), 250, False)
-            pause(250)
-            hit = sprites.create(assets.image("""DownHit"""), SpriteKind.hit)
-            hit.set_position(X, Y)
-            hit.follow(MC, 800)
-            pause(500)
-            hit.destroy()
-            DownWalk()
-        if direction == 4:
-            animation.run_image_animation(MC, assets.animation("""
-                LeftSwing
-            """), 250, False)
-            pause(250)
-            hit = sprites.create(assets.image("""LeftHit"""), SpriteKind.hit)
-            hit.set_position(X, Y)
-            hit.follow(MC, 800)
-            pause(500)
-            hit.destroy()
-            LeftWalk()
 
 # world map
 def WorldMap():

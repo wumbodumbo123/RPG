@@ -54,6 +54,16 @@ slime3: Sprite = None
 slime4: Sprite = None
 MCX = 0
 MCY = 0
+MoveForever = True
+InventoryUse = True
+def MSO():
+    while True:
+        music.play(music.create_song(assets.song("""
+                BackgroundMusic
+            """)),
+            music.PlaybackMode.UNTIL_DONE)
+
+forever(MSO)
 
 # MC XY
 def XY():
@@ -79,6 +89,7 @@ slime = sprites.create(assets.image("""slime"""), SpriteKind.Slime)
 
 # enemy die
 def Death():
+
     # Slimes
     def Slime1():
         global MC_xp, AllEnemyDead
@@ -120,6 +131,7 @@ def SlimeFight():
     SY2 = 12 + 16
     slimeCreate()
     slime.destroy()
+    
 sprites.on_overlap(SpriteKind.player, SpriteKind.Slime, SlimeFight)
 
 def slimeCreate():
@@ -165,7 +177,7 @@ def slimeCreate():
         SY2 += 32
         
 def fight():
-    global MCX, MCY
+    global MCX, MCY, MoveForever, InventoryUse
     # MC Position
     MCX = MC.x
     MCY = MC.y
@@ -175,11 +187,15 @@ def fight():
     
     # background
     scene.set_background_image(assets.image("""DungeonFight"""))
-    
+
     # MC
     tiles.place_on_tile(MC, tiles.get_tile_location(7, 3))
+    MoveForever = False
     controller.move_sprite(MC, 0, 0)
     
+    # inventory
+    InventoryUse = False
+
     # Button
     button()
 
@@ -190,10 +206,11 @@ def button():
     MSprite.set_position(80, 95)
     # select
     select = sprites.create(assets.image("""Select"""), SpriteKind.Random)
-    A = True
     C = True
     Walk = False
     animation.run_image_animation(MC, assets.animation("""AttackStance"""), 500, True)
+    game.splash("wasd/arrow keys to select and a to confirm")
+    A = True
 
 def SelectPosition():
     global SON, SelectChoice, Walk
@@ -270,19 +287,29 @@ def SelectPosition():
 
     # end fight
     if AllEnemyDead == EnemyNumber:
+        global EnemyNumber, A, MoveForever, Walk, InventoryUse
         pause(100)
         tiles.set_current_tilemap(tilemap("""tutorial"""))
         pause(400)
         MC.set_position(MCX, MCY)
         Walk = True
+        MoveForever = True
+        EnemyNumber -= 1
+        A = False
+        InventoryUse = True
         
 
 game.on_update(SelectPosition)
 
 # Move
 def Move():
-    controller.move_sprite(MC, 100, 100)
+    if MoveForever == True:
+        controller.move_sprite(MC, 100, 100)
 game.on_update(Move)
+
+# MC on start
+def MConStart():
+    tiles.place_on_random_tile(MC, assets.tile("""start"""))
 
 # Tutorial
 def Tutorial():
@@ -301,8 +328,8 @@ sprites.on_overlap(SpriteKind.player, SpriteKind.TutExit, ExitTut)
 
 # directions
 def directions():
-    game.splash("press a to attack")
     game.splash("press menu for inventory")
+    game.splash("wasd or arrow keys to Move")
 
 # death
 def slimedead():
@@ -316,47 +343,49 @@ invN = 2
 inv: Sprite = None
 def inventory_close():
     global invN
-    if invN == 1:
-        invN = 2
-        inv.destroy()
-        scaling.scale_by_pixels(MC, -48, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
-        scene.camera_follow_sprite(MC)
-        MC.set_position(X + 42, Y)
-        XpText.destroy()
-        game.show_long_text("inventory closed starting game", DialogLayout.FULL)
-        controller.move_sprite(MC)
+    if InventoryUse == True:
+        if invN == 1:
+            invN = 2
+            inv.destroy()
+            scaling.scale_by_pixels(MC, -48, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
+            scene.camera_follow_sprite(MC)
+            MC.set_position(X + 42, Y)
+            XpText.destroy()
+            game.show_long_text("inventory closed starting game", DialogLayout.FULL)
+            controller.move_sprite(MC)
 def inventory():
     global invN, inv, MC, XpText, McHealth
-    if invN == 2:
-        # create inv
-        inv = sprites.create(assets.image("""Inventory"""), SpriteKind.Inventory)
-        inv.set_position(X, Y)
+    if InventoryUse == True:
+        if invN == 2:
+            # create inv
+            inv = sprites.create(assets.image("""Inventory"""), SpriteKind.Inventory)
+            inv.set_position(X, Y)
 
-        # MC
-        controller.move_sprite(MC, 0, 0)
-        XN = X
-        YN = Y
-        scene.center_camera_at(XN, YN)
-        MC.destroy()
-        MC = sprites.create(assets.image("""
-            MC
-        """), SpriteKind.player)
-        MC.set_position(XN - 42, YN)
-        scaling.scale_by_pixels(MC, 48, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
+            # MC
+            controller.move_sprite(MC, 0, 0)
+            XN = X
+            YN = Y
+            scene.center_camera_at(XN, YN)
+            MC.destroy()
+            MC = sprites.create(assets.image("""
+                MC
+            """), SpriteKind.player)
+            MC.set_position(XN - 42, YN)
+            scaling.scale_by_pixels(MC, 48, ScaleDirection.UNIFORMLY, ScaleAnchor.MIDDLE)
 
-        # MC health
-        McHealth.destroy()
-        McHealth = statusbars.create(20, 4, StatusBarKind.health)
-        McHealth.attach_to_sprite(MC)
-        McHealth.set_offset_padding(0, -12)
+            # MC health
+            McHealth.destroy()
+            McHealth = statusbars.create(20, 4, StatusBarKind.health)
+            McHealth.attach_to_sprite(MC)
+            McHealth.set_offset_padding(0, -12)
 
-        # XP
-        XpText = textsprite.create("XP " + MC_xp + "/" + MaxXp)
-        XpText.set_position(XN - 42, YN + 35)
-        XpText.set_outline(1, 6)
-        
-        # invN
-        invN = 1
+            # XP
+            XpText = textsprite.create("XP " + MC_xp + "/" + MaxXp)
+            XpText.set_position(XN - 42, YN + 35)
+            XpText.set_outline(1, 6)
+            
+            # invN
+            invN = 1
 controller.menu.on_event(ControllerButtonEvent.PRESSED, inventory_close)
 controller.menu.on_event(ControllerButtonEvent.RELEASED, inventory)
 
